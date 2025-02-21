@@ -2,92 +2,1022 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>PDFファイルアップロード → Difyアプリ実行</title>
+  <title>職務経歴書 入力フォーム＋プレビュー</title>
+
+  <!-- ◆ ここにCSSをまとめて埋め込む -->
   <style>
-    /* 簡易的にスタイル省略 */
-    body {
-      margin: 30px;
+    /* リセット・共通スタイル */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      font-size: 11pt;
+      height: 100%;
+      color: #000;
       font-family: sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    /* 全体レイアウト */
+    .container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 左カラム */
+    .left {
+      background: #ffffff;
+      border-right: 1px solid #ddd;
+      padding: 20px;
+      overflow-y: auto;
+      width: 50%;
+    }
+
+    /* 右カラム */
+    .right {
+      background: #9e9999;
+      overflow-x: auto;
+      overflow-y: auto; 
+      width: 50%;
+      padding: 20px;
+    }
+
+    .left input[type="text"],
+    .left textarea,
+    .left select {
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    .left input[type="text"]:focus,
+    .left textarea:focus,
+    .left select:focus {
+      outline: none;
+      border-color: #80bdff;
+      box-shadow: 0 0 4px rgba(0,123,255,0.3);
+    }
+
+    /* ヘッダー */
+    .header-left {
+      background-color: transparent;
+      text-align: center;
+      border-bottom: none;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+    }
+    .header-left h1 {
+      font-size: 28px;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .header-left .smart {
+      color: #000;
+      font-family: "Istok Web", sans-serif;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .header-left .dash {
+      font-family: "Istok Web", sans-serif;
+      font-size: 28px;
+      margin: 0 5px;
+    }
+    .header-left .cv {
+      color: #2cddb4;
+      font-family: "Istok Web", sans-serif;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .header-left h2 {
+      font-family: "Istok Web", sans-serif;
+      font-size: 16px;
+      color: #333;
+      margin-top: 8px;
+    }
+
+    /* 選択ガイド */
+    .choice-box {
+      display: block;
+      background-color: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      border-radius: 6px;
+      margin: 0 auto 20px;
+      padding: 16px;
+      text-align: left;
+      font-size: 16px;
+      color: #333;
+      max-width: 90%;
+    }
+    .first-box,
+    .second-box {
+      display: block;
+      background-color: #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      margin: 0 auto 20px;
+      padding: 16px;
+      text-align: center;
+      font-size: 18px;
+      color: #333;
+      max-width: 90%;
+    }
+
+    /* アップロード */
+    .upload-wrapper {
+      margin-bottom: 20px;
+      margin-left: 0;
+      width: 100%;
+    }
+    .upload-label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 15px;
     }
     .upload-area {
       border: 2px dashed #ccc;
       border-radius: 6px;
       padding: 20px;
-      width: 300px;
-      text-align: center;
-      background-color: #fafafa;
       cursor: pointer;
+      transition: border-color 0.3s, background-color 0.3s;
+      height: 110px;
+      text-align: center;
+      margin: 0 auto;
+      max-width: 90%;
+      background-color: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .upload-text {
+      color: #888;
+      font-size: 0.9rem;
+    }
+    .upload-area:hover {
+      border-color: #aaa;
+      background-color: #f8f8f8;
+    }
+
+    /* セクション見出し */
+    .section-title {
+      margin-top: 25px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #2c3e50;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #2c3e50;
+      margin-bottom: 12px;
+    }
+
+    /* フォーム関連 */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-col {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 8px;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+    }
+    .simple-textarea {
+      min-height: 80px;
+      font-size: 0.95rem;
+      resize: vertical;
+    }
+
+    /* ボタン */
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .btn-group button,
+    #download-pdf,
+    #download-uploaded-file,
+    #bulk-generate-btn {
+      padding: 8px 16px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    /* 一括生成ボタンを中央配置＆大きく */
+    #bulk-generate-btn {
+      display: block;
+      margin: 20px auto; 
+      background-color: #007bff;
+      color: #fff;
+      border-color: #007bff;
+      font-size: 1rem; 
+      padding: 12px 24px;
+    }
+    #bulk-generate-btn:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+
+    /* 追加・削除ボタン */
+    #add-career-row,
+    #add-license-row,
+    #add-lang-row {
+      background-color: #007bff;
+      color: #fff;
+      border-color: #007bff;
+    }
+    #add-career-row:hover,
+    #add-license-row:hover,
+    #add-lang-row:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+    #remove-career-row,
+    #remove-license-row,
+    #remove-lang-row {
+      background-color: #dc3545;
+      color: #fff;
+      border-color: #dc3545;
+    }
+    #remove-career-row:hover,
+    #remove-license-row:hover,
+    #remove-lang-row:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+
+    /* PDFダウンロードボタン */
+    #download-pdf {
+      background-color: #28a745;
+      color: #fff;
+      border-color: #28a745;
+      margin: 0 auto;
+      display: inline-block;
+    }
+    #download-pdf:hover {
+      background-color: #218838;
+      border-color: #1e7e34;
+    }
+
+    /* 利用規約 */
+    .terms-box {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      padding: 10px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+
+    /* ズーム操作ボタン */
+    .zoom-controls {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+    .zoom-controls button {
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      margin: 0 5px;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #ccc;
+      border: none;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    .zoom-controls button:hover {
+      background-color: #bbb;
+    }
+
+    /* 右カラム プレビュー (A4固定) */
+    .resume-pages-wrap {
+      transform-origin: top left;
+    }
+    .resume-page {
+      width: 210mm;
+      height: 297mm; /* A4縦 */
+      margin: 0 auto 20px;
+      padding: 10mm;
+      box-sizing: border-box;
+      background: #fff;
+    }
+    .preview-title {
+      text-align: center;
+      font-size: 16pt;
+      font-weight: bold;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    .top-right {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+    .preview-section-title {
+      font-weight: bold;
+      font-size: 12pt;
+      margin: 10px 0 5px;
+      text-decoration: underline;
+    }
+    .summary-block {
+      width: 100%;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      box-sizing: border-box;
+    }
+    #input-summary {
+      overflow: hidden;
+      resize: none;
+    }
+    .license-table,
+    .lang-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-bottom: 8px;
+    }
+    .license-table th,
+    .license-table td,
+    .lang-table th,
+    .lang-table td {
+      border: 1px solid #000;
+      padding: 4px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 0.9rem;
+    }
+    .career-format-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    .career-format-table th,
+    .career-format-table td {
+      border: 1px solid #000;
+      padding: 8px;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+    .career-format-table thead th {
+      background-color: #D9D9D9;
+    }
+    #career-container .sub-section,
+    #license-container .sub-section,
+    #lang-container .sub-section {
+      border-top: 1px solid #000;
+      margin-top: 10px;
+      padding-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    /* 職務要約の文字数カウンター */
+    #char-counter {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: right;
+      margin-top: -5px;
     }
   </style>
+
+  <!-- ◆ html2canvas と jsPDF をCDNから読み込み（外部ライブラリ） -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
 </head>
 <body>
-  <h1>PDFファイルをアップロード → Difyアプリ実行</h1>
-  <div class="upload-area" onclick="document.getElementById('pdf-file-input').click()">
-    PDFファイルをアップロード
-  </div>
-  <input type="file" id="pdf-file-input" accept=".pdf" style="display:none" />
+  <div class="container">
+    <!-- 左カラム -->
+    <div class="left">
+      <div class="header-left">
+        <h1>
+          <span class="smart">Smart</span>
+          <span class="dash">-</span>
+          <span class="cv">CV</span>
+        </h1>
+        <h2>[完全無料] 履歴書・職務経歴書自動作成サービス</h2>
+      </div>
 
+      <!-- 選択ガイド -->
+      <div class="choice-box">
+        <strong>
+          既に経歴書をお持ちの方は、➀にお進みください（予想作成時間３０秒）<br>
+          お持ちでない方は、②にお進みください。（予想作成時間５分）
+        </strong>
+      </div>
+
+      <div class="first-box">
+        <strong>➀に当てはまる方は、以下の項目への入力をお願いします。</strong>
+      </div>
+
+      <!-- ファイルアップロード -->
+      <div class="form-group upload-wrapper">
+        <label for="resume-file" class="upload-label">
+          1. 経歴書などをお持ちの場合アップロードしてください。
+        </label>
+        <div class="upload-area" onclick="document.getElementById('resume-file').click()">
+          <p class="upload-text">
+            PDFもしくは、docs形式のデータをアップロードしてください。
+          </p>
+        </div>
+        <input type="file" id="resume-file" accept=".pdf,.doc,.docx" style="display: none">
+      </div>
+
+      <!-- 一括生成ボタン(大きめ＆中央配置) -->
+      <button id="bulk-generate-btn">
+        一括生成する
+      </button>
+
+      <div class="second-box">
+        <strong>②に当てはまる方は、以下の項目への入力をお願いします。</strong>
+      </div>
+
+      <!-- 基本情報 -->
+      <div class="section-title">基本情報</div>
+      <div class="form-row">
+        <div class="form-col">
+          <label for="input-name">氏名</label>
+          <input type="text" id="input-name" placeholder="例）山田 太郎">
+        </div>
+        <div class="form-col">
+          <label for="input-tel">電話</label>
+          <input type="text" id="input-tel" placeholder="例）090-1234-1234">
+        </div>
+        <div class="form-col">
+          <label for="input-mail">メール</label>
+          <input type="text" id="input-mail" placeholder="例）example@example.com">
+        </div>
+      </div>
+
+      <!-- 職務要約 -->
+      <div class="section-title">職務要約</div>
+      <textarea class="simple-textarea" id="input-summary" placeholder="ここに職務要約を入力" maxlength="300"></textarea>
+      <div id="char-counter">0 / 300字</div>
+      
+      <!-- 職務経歴 -->
+      <div class="section-title">職務経歴</div>
+      <div id="career-container">
+        <!-- 最初の入力ブロック -->
+        <div class="form-col" id="career-first">
+          <label>期間</label>
+          <input type="text" id="career1-period" placeholder="例）20xx年4月～20xx年xx月">
+          <label>会社名</label>
+          <input type="text" id="career1-company" placeholder="例）○○○株式会社">
+          <label>雇用形態</label>
+          <input type="text" id="career1-employment" placeholder="例）正社員">
+          <label>役職</label>
+          <input type="text" id="career1-position" placeholder="例）店長">
+          <label>事業内容</label>
+          <textarea id="career1-business" placeholder="例）オリジナル雑貨の企画・販売など"></textarea>
+          <label>業務内容</label>
+          <textarea id="career1-duty" placeholder="例）接客、売場管理、スタッフ育成など"></textarea>
+          <label>実績</label>
+          <textarea id="career1-achievement" placeholder="例）前年比105%達成など"></textarea>
+          <label>従業員数</label>
+          <input type="text" id="career1-empcount" placeholder="例）50名">
+          <label>資本金</label>
+          <input type="text" id="career1-capital" placeholder="例）2000万円">
+          <label>株式市場</label>
+          <input type="text" id="career1-market" placeholder="例）非上場">
+        </div>
+      </div>
+      <div class="btn-group" id="career-btn-group">
+        <button id="add-career-row">＋職務経歴を追加</button>
+        <button id="remove-career-row">－削除</button>
+      </div>
+
+      <!-- 免許・資格 -->
+      <div class="section-title">免許・資格</div>
+      <div id="license-container">
+        <div class="form-col" id="license-first">
+          <label>年</label>
+          <input type="text" id="license1-year" placeholder="例：2025">
+          <label>月</label>
+          <input type="text" id="license1-month" placeholder="例：01">
+          <label>免許・資格名</label>
+          <input type="text" id="license1-name" placeholder="例：普通自動車免許">
+        </div>
+      </div>
+      <div class="btn-group" id="license-btn-group">
+        <button id="add-license-row">＋免許・資格を追加</button>
+        <button id="remove-license-row">－削除</button>
+      </div>
+
+      <!-- 語学 -->
+      <div class="section-title">語学</div>
+      <div id="lang-container">
+        <div class="form-col" id="lang-first">
+          <label>語学</label>
+          <input type="text" id="lang1-lang" placeholder="例：英語">
+          <label>レベル</label>
+          <input type="text" id="lang1-level" placeholder="例：ビジネスレベル">
+        </div>
+      </div>
+      <div class="btn-group" id="lang-btn-group">
+        <button id="add-lang-row">＋語学を追加</button>
+        <button id="remove-lang-row">－削除</button>
+      </div>
+
+      <!-- 活かせる経験・知識・技術 -->
+      <div class="section-title">活かせる経験・知識・技術</div>
+      <textarea class="simple-textarea" id="input-skill"></textarea>
+
+      <!-- 自己PR -->
+      <div class="section-title">自己PR</div>
+      <textarea class="simple-textarea" id="input-pr"></textarea>
+
+      <!-- 利用規約 -->
+      <div class="section-title">利用規約</div>
+      <div class="terms-box">
+        <p><strong>第1条【定義】</strong></p>
+        <ol style="margin-left:1em;">
+          <li>本規約：ストア利用規約</li>
+          <li>当方：本サービスを利用して開設したオンラインストア運営者</li>
+          <li>本サービス：当方がインターネットを通じて提供する通信販売サービス</li>
+          <li>利用者：本サービスの内容を全て理解・承諾した上で当方のサービスを利用する者</li>
+          <li>…（以下、利用規約本文を必要に応じて追加してください）</li>
+        </ol>
+      </div>
+      <div style="margin: 10px 0; text-align: center;">
+        <input 
+          type="checkbox" 
+          id="agree-terms"
+          style="transform: scale(1.5); transform-origin: center;"
+        >
+        <label for="agree-terms" style="font-weight: bold;">同意する</label>
+      </div>
+
+      <!-- PDFダウンロードボタン -->
+      <div style="text-align: center; margin-top: 24px;">
+        <button id="download-pdf">
+          PDFダウンロード
+        </button>
+      </div>
+    </div><!-- /left -->
+
+    <!-- 右カラム（プレビュー） -->
+    <div class="right">
+      <!-- ズーム操作ボタン -->
+      <div class="zoom-controls">
+        <button id="zoom-out">- 10%</button>
+        <button id="zoom-in">+ 10%</button>
+      </div>
+
+      <div class="resume-pages-wrap" id="resumePages">
+        <!-- JSでプレビュー生成 -->
+      </div>
+    </div><!-- /right -->
+  </div><!-- /container -->
+
+  <!-- ==================== ここからJSをまとめて埋め込み ==================== -->
   <script>
-    // Dify APIキー・エンドポイントなど
-    const difyApiKey  = "Bearer {app-nec0NdADJDdpecQKQYvtxzmD}";  // 必ず "Bearer " を付与
-    const difyUrl     = "https://api.dify.ai/v1";
+    /***************************************************
+     * (A) 連携先URLなどの設定
+     ***************************************************/
+    const difyUploadURL = "https://api.dify.ai/v1"; // Difyアプリ用
+    const difyAPIKey    = "app-nec0NdADJDdpecQKQYvtxzmD"; // 例
+    const scriptURL     = "https://script.google.com/macros/s/AKfycbzovpyw9ijTmD_.../exec"; // GAS連携例
 
-    document.getElementById("pdf-file-input").addEventListener("change", async (e) => {
-      if (!e.target.files || e.target.files.length === 0) {
-        return;
+    /***************************************************
+     * (B) グローバル変数
+     ***************************************************/
+    let selectedFile = null;  // アップロードしたファイルを保持
+
+    // 動的に増やす経歴・免許・語学の数
+    let careerCount  = 1;
+    let licenseCount = 1;
+    let langCount    = 1;
+
+    // ズーム管理
+    let currentZoom  = 1.0;
+    const MIN_ZOOM   = 0.5;
+    const MAX_ZOOM   = 2.0;
+    const ZOOM_STEP  = 0.1;
+
+    /***************************************************
+     * (C) DOMContentLoaded - 初期化
+     ***************************************************/
+    document.addEventListener('DOMContentLoaded', () => {
+      // バインド
+      setupBindings();
+      updatePreviewPages();
+
+      // ファイル選択 -> Dify送信
+      const fileInput = document.getElementById("resume-file");
+      if (fileInput) {
+        fileInput.addEventListener("change", handleFileChange);
       }
-      const selectedFile = e.target.files[0];
 
-      // PDFのみ想定
-      if (!selectedFile.name.endsWith(".pdf")) {
-        alert("PDFファイルを選択してください。");
-        return;
+      // 一括生成ボタン -> 同じように送信
+      const bulkBtn = document.getElementById("bulk-generate-btn");
+      if (bulkBtn) {
+        bulkBtn.addEventListener("click", handleBulkGenerate);
       }
 
-      // ここでDifyに送信
+      // ダウンロードボタン
+      const pdfBtn = document.getElementById("download-pdf");
+      const agreeCheckbox = document.getElementById("agree-terms");
+      if (pdfBtn && agreeCheckbox) {
+        pdfBtn.addEventListener("click", async() => {
+          if (!agreeCheckbox.checked) {
+            alert("利用規約に同意する必要があります。");
+            return;
+          }
+          await handleDownloadPDF();
+        });
+      }
+
+      // ズームボタン
+      const zoomOutBtn = document.getElementById("zoom-out");
+      const zoomInBtn = document.getElementById("zoom-in");
+      if (zoomOutBtn && zoomInBtn) {
+        zoomOutBtn.addEventListener("click", () => {
+          if (currentZoom > MIN_ZOOM) {
+            currentZoom = Math.max(MIN_ZOOM, currentZoom - ZOOM_STEP);
+            applyZoom(currentZoom);
+          }
+        });
+        zoomInBtn.addEventListener("click", () => {
+          if (currentZoom < MAX_ZOOM) {
+            currentZoom = Math.min(MAX_ZOOM, currentZoom + ZOOM_STEP);
+            applyZoom(currentZoom);
+          }
+        });
+      }
+    });
+
+    /***************************************************
+     * (D) ファイルアップロード時の処理
+     ***************************************************/
+    async function handleFileChange(e) {
+      if (!e.target.files || e.target.files.length === 0) return;
+      selectedFile = e.target.files[0];
+      alert("ファイルが選択されました: " + selectedFile.name);
+
       try {
-        // multipart/form-dataを扱うため、FormDataを使う
         const formData = new FormData();
-        // "file" というキー名で、PDFファイルをアペンド
-        // type指定を厳密に行いたい場合は Blob で囲む方法もありますが、
-        // 多くの場合 extension + ヘッダをサーバーが判別してくれます。
-        formData.append("file", selectedFile, selectedFile.name);
-
-        // "user=abc-123" と同等にユーザーIDなどを送る場合
-        formData.append("user", "abc-123");
-
-        console.log("[DEBUG] ファイルアップロード開始...");
-
-        const response = await fetch(difyUrl, {
+        formData.append("file", selectedFile);
+        
+        const response = await fetch(difyUploadURL, {
           method: "POST",
-          headers: {
-            "Authorization": difyApiKey
-            // ※ Content-Type は fetch が自動で multipart/form-data にするので不要
+          headers: { 
+            "x-api-key": difyAPIKey
           },
           body: formData
         });
-
         if (!response.ok) {
           const errText = await response.text();
           throw new Error("Difyアップロード失敗: " + errText);
         }
-
-        // Difyからのレスポンスを受け取り
         const result = await response.json();
-        console.log("[DEBUG] Difyアップロード完了:", result);
+        console.log("[DEBUG] Difyアップロード結果:", result);
 
-        // ここでファイルIDや解析結果などが返ってくるはずなので、
-        // 必要なら次のステップ（Difyアプリ実行など）を行う
-        alert("PDFをアップロードしました。コンソールで結果を確認できます。");
-
-        // 例：アップロード後に別のエンドポイントを呼んでDifyアプリを実行
-        // runDifyApp(result.file_id); // など
-
-      } catch (err) {
-        console.error("アップロード中にエラー:", err);
-        alert("ファイルのアップロードに失敗: " + err.message);
+        // Difyから "text" フィールドで返ってくる想定
+        if (result.text) {
+          const data = parseDifyText(result.text);
+          fillForm(data);
+          updatePreviewPages();
+          alert("Difyの解析結果をフォームに反映しました。");
+        } else {
+          alert("Difyのレスポンスに 'text' フィールドが見つかりません。");
+        }
+      } catch(err) {
+        console.error(err);
+        alert("解析エラー: " + err.message);
       }
-    });
+    }
+
+    /***************************************************
+     * (E) 一括生成ボタン
+     ***************************************************/
+    async function handleBulkGenerate() {
+      if (!selectedFile) {
+        alert("先にファイルを選択してください。");
+        return;
+      }
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        const response = await fetch(difyUploadURL, {
+          method: "POST",
+          headers: { "x-api-key": difyAPIKey },
+          body: formData
+        });
+        if (!response.ok) {
+          throw new Error("Difyアップロード失敗: " + (await response.text()));
+        }
+        const result = await response.json();
+        console.log("[DEBUG] 一括生成 Dify結果:", result);
+
+        if (result.text) {
+          const data = parseDifyText(result.text);
+          fillForm(data);
+          updatePreviewPages();
+          alert("Dify解析結果をフォームに反映しました。");
+        }
+      } catch(err) {
+        console.error(err);
+        alert("一括生成エラー: " + err.message);
+      }
+    }
+
+    /***************************************************
+     * (F) Difyの "text" を解析する関数
+     ***************************************************/
+    function parseDifyText(allText) {
+      // 例: JSONでなく「マークアップされたテキスト」を正規表現で抜き出す
+      // ここではサンプルとして「【氏名】: 〜」「【電話】: 〜」などを抽出します
+
+      const data = {
+        name: "",
+        tel: "",
+        mail: "",
+        summary: "",
+        careers: [],
+        licenses: [],
+        languages: [],
+        skill: "",
+        pr: ""
+      };
+
+      const text = allText.trim();
+
+      // 【氏名】:
+      const nameMatch = text.match(/【氏名】:\s*(.+)/);
+      if (nameMatch) data.name = nameMatch[1].trim();
+
+      // 【電話】:
+      const telMatch = text.match(/【電話】:\s*(.+)/);
+      if (telMatch) data.tel = telMatch[1].trim();
+
+      // 【メール】:
+      const mailMatch = text.match(/【メール】:\s*(.+)/);
+      if (mailMatch) data.mail = mailMatch[1].trim();
+
+      // **職務要約** 〜 ** などを想定
+      const summaryMatch = text.match(/\*\*職務要約\*\*([\s\S]*?)(?=\*\*|$)/);
+      if (summaryMatch) {
+        data.summary = summaryMatch[1].trim().replace(/^(\r?\n)+/, "");
+      }
+
+      // ここでは手短に skill, pr, 免許, 語学, 職歴などを同様に取得
+      // ... （本当はさらに正規表現で抽出）
+
+      console.log("[DEBUG] parseDifyText =>", data);
+      return data;
+    }
+
+    /***************************************************
+     * (G) 解析結果をフォームに反映
+     ***************************************************/
+    function fillForm(parsed) {
+      // 基本情報
+      if (parsed.name) {
+        document.getElementById("input-name").value = parsed.name;
+      }
+      if (parsed.tel) {
+        document.getElementById("input-tel").value = parsed.tel;
+      }
+      if (parsed.mail) {
+        document.getElementById("input-mail").value = parsed.mail;
+      }
+
+      // 職務要約
+      if (parsed.summary) {
+        document.getElementById("input-summary").value = parsed.summary;
+      }
+      // スキル
+      if (parsed.skill) {
+        document.getElementById("input-skill").value = parsed.skill;
+      }
+      // 自己PR
+      if (parsed.pr) {
+        document.getElementById("input-pr").value = parsed.pr;
+      }
+
+      // 以下: 職歴, 免許, 語学 などは繰り返し要素なので、配列に入れて fill する
+      // 例: clearCareerForm -> fillCareerRow
+      // ここでは詳細省略 or 同様に処理
+    }
+
+    function clearCareerForm() {
+      // 初期化
+    }
+    // etc...
+
+    /***************************************************
+     * (H) フォーム => プレビュー のリアルタイム更新
+     ***************************************************/
+    function setupBindings() {
+      function bindText(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", updatePreviewPages);
+      }
+
+      // 基本情報
+      bindText("input-name");
+      bindText("input-tel");
+      bindText("input-mail");
+
+      // 職務要約
+      bindText("input-summary");
+      // スキル
+      bindText("input-skill");
+      // 自己PR
+      bindText("input-pr");
+
+      // （以下: 職歴、免許、語学 の1つめをbind）
+
+      // 追加/削除ボタンのセットアップ
+      setupAddRemoveCareer();
+      setupAddRemoveLicense();
+      setupAddRemoveLang();
+
+      // 職務要約の文字数カウンター
+      const summaryInput = document.getElementById("input-summary");
+      const charCounter  = document.getElementById("char-counter");
+      if (summaryInput && charCounter) {
+        summaryInput.addEventListener("input", () => {
+          const currentLength = summaryInput.value.length;
+          charCounter.textContent = `${currentLength} / 300字`;
+        });
+      }
+    }
+
+    function setupAddRemoveCareer() {
+      // ...
+    }
+    function setupAddRemoveLicense() {
+      // ...
+    }
+    function setupAddRemoveLang() {
+      // ...
+    }
+
+    /***************************************************
+     * (I) プレビュー生成
+     ***************************************************/
+    function updatePreviewPages() {
+      const wrap = document.getElementById('resumePages');
+      if (!wrap) return;
+      wrap.innerHTML = '';
+
+      function createNewPage() {
+        const page = document.createElement('div');
+        page.className = 'resume-page';
+        wrap.appendChild(page);
+        return page;
+      }
+
+      let currentPage = createNewPage();
+
+      // タイトル & 基本情報
+      currentPage.appendChild(makeTitleBlock());
+
+      // 職務要約
+      currentPage.appendChild(makeSectionTitle('職務要約'));
+      {
+        const text = docVal('input-summary');
+        const summaryBlock = document.createElement('div');
+        summaryBlock.classList.add('summary-block');
+        summaryBlock.textContent = text;
+
+        if (isOverflowAfterAppend(currentPage, summaryBlock)) {
+          currentPage = createNewPage();
+          currentPage.appendChild(makeSectionTitle('職務要約'));
+        }
+        currentPage.appendChild(summaryBlock);
+      }
+
+      // （以下、職歴や免許、語学など同様にappend）
+    }
+
+    function makeTitleBlock() {
+      const nameVal = esc(docVal('input-name'));
+      const telVal  = esc(docVal('input-tel'));
+      const mailVal = esc(docVal('input-mail'));
+      const dateStr = new Date().toLocaleDateString('ja-JP');
+
+      const container = document.createElement('div');
+      const titleEl = document.createElement('div');
+      titleEl.classList.add('preview-title');
+      titleEl.textContent = '職務経歴書';
+      container.appendChild(titleEl);
+
+      const infoEl = document.createElement('div');
+      infoEl.classList.add('top-right');
+      infoEl.innerHTML = `
+        <div>作成日: ${dateStr}</div>
+        <div>名前: ${nameVal}</div>
+        <div>Tel: ${telVal}</div>
+        <div>Mail: ${mailVal}</div>
+      `;
+      container.appendChild(infoEl);
+
+      return container;
+    }
+    function makeSectionTitle(txt) {
+      const d = document.createElement('div');
+      d.className = 'preview-section-title';
+      d.textContent = txt;
+      return d;
+    }
+    // ... 職歴ブロック, 免許ブロックなど
+
+    function docVal(id) {
+      const el = document.getElementById(id);
+      return el ? el.value : '';
+    }
+    function esc(str) {
+      return (str || '').replace(/[&<>"']/g, s => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      })[s]);
+    }
+    function isOverflowAfterAppend(pageElem, blockElem) {
+      pageElem.appendChild(blockElem);
+      const isOverflow = pageElem.scrollHeight > pageElem.clientHeight;
+      pageElem.removeChild(blockElem);
+      return isOverflow;
+    }
+
+    /***************************************************
+     * (J) PDFダウンロード
+     ***************************************************/
+    async function handleDownloadPDF() {
+      try {
+        const sendData = {
+          createdDate: new Date().toLocaleString(),
+          name: document.getElementById("input-name").value,
+          tel : document.getElementById("input-tel").value,
+          mail: document.getElementById("input-mail").value
+        };
+        const response = await fetch(scriptURL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(sendData),
+        });
+        if (!response.ok) {
+          console.error("GAS送信エラー: status =", response.status);
+        } else {
+          const resultText = await response.text();
+          console.log("GAS応答 =", resultText);
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('portrait', 'pt', 'a4');
+        const pages = document.querySelectorAll('.resume-page');
+
+        for (let i = 0; i < pages.length; i++) {
+          if (i > 0) pdf.addPage();
+          const canvas = await html2canvas(pages[i], { scale: 2 });
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+          const pdfWidth  = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          const imgWidthPx  = canvas.width;
+          const imgHeightPx = canvas.height;
+          const scale = pdfWidth / imgWidthPx;
+          const imgHeightInPdf = imgHeightPx * scale;
+
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeightInPdf);
+        }
+
+        pdf.save("職務経歴書.pdf");
+        alert("PDFダウンロードが開始されました！");
+      } catch(e) {
+        console.error("PDF生成またはGAS送信エラー:", e);
+        alert("エラーが発生しました: " + e.message);
+      }
+    }
+
+    /***************************************************
+     * (K) ズーム処理
+     ***************************************************/
+    function applyZoom(scale) {
+      const wrap = document.getElementById("resumePages");
+      wrap.style.transform = `scale(${scale})`;
+    }
   </script>
 </body>
 </html>
