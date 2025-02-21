@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PDFファイルアップロード → Difyアプリ実行</title>
+  <style>
+    /* 簡易的にスタイル省略 */
+    body {
+      margin: 30px;
+      font-family: sans-serif;
+    }
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 6px;
+      padding: 20px;
+      width: 300px;
+      text-align: center;
+      background-color: #fafafa;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>PDFファイルをアップロード → Difyアプリ実行</h1>
+  <div class="upload-area" onclick="document.getElementById('pdf-file-input').click()">
+    PDFファイルをアップロード
+  </div>
+  <input type="file" id="pdf-file-input" accept=".pdf" style="display:none" />
+
+  <script>
+    // Dify APIキー・エンドポイントなど
+    const difyApiKey  = "Bearer {app-nec0NdADJDdpecQKQYvtxzmD}";  // 必ず "Bearer " を付与
+    const difyUrl     = "https://api.dify.ai/v1";
+
+    document.getElementById("pdf-file-input").addEventListener("change", async (e) => {
+      if (!e.target.files || e.target.files.length === 0) {
+        return;
+      }
+      const selectedFile = e.target.files[0];
+
+      // PDFのみ想定
+      if (!selectedFile.name.endsWith(".pdf")) {
+        alert("PDFファイルを選択してください。");
+        return;
+      }
+
+      // ここでDifyに送信
+      try {
+        // multipart/form-dataを扱うため、FormDataを使う
+        const formData = new FormData();
+        // "file" というキー名で、PDFファイルをアペンド
+        // type指定を厳密に行いたい場合は Blob で囲む方法もありますが、
+        // 多くの場合 extension + ヘッダをサーバーが判別してくれます。
+        formData.append("file", selectedFile, selectedFile.name);
+
+        // "user=abc-123" と同等にユーザーIDなどを送る場合
+        formData.append("user", "abc-123");
+
+        console.log("[DEBUG] ファイルアップロード開始...");
+
+        const response = await fetch(difyUrl, {
+          method: "POST",
+          headers: {
+            "Authorization": difyApiKey
+            // ※ Content-Type は fetch が自動で multipart/form-data にするので不要
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error("Difyアップロード失敗: " + errText);
+        }
+
+        // Difyからのレスポンスを受け取り
+        const result = await response.json();
+        console.log("[DEBUG] Difyアップロード完了:", result);
+
+        // ここでファイルIDや解析結果などが返ってくるはずなので、
+        // 必要なら次のステップ（Difyアプリ実行など）を行う
+        alert("PDFをアップロードしました。コンソールで結果を確認できます。");
+
+        // 例：アップロード後に別のエンドポイントを呼んでDifyアプリを実行
+        // runDifyApp(result.file_id); // など
+
+      } catch (err) {
+        console.error("アップロード中にエラー:", err);
+        alert("ファイルのアップロードに失敗: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
